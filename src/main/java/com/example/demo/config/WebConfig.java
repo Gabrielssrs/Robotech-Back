@@ -14,7 +14,7 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**") // Aplica a TODAS las rutas bajo /api/
-                        .allowedOrigins("http://127.0.0.1:5501", "http://localhost:5501") // Permite estos orígenes
+                        .allowedOrigins("http://127.0.0.1:5501", "http://localhost:5501", "https://gabrielssrs.github.io") // Permite estos orígenes
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Permite estos métodos HTTP
                         .allowedHeaders("*") // Permite todas las cabeceras
                         .allowCredentials(true); // Permite el envío de credenciales (como tokens)
