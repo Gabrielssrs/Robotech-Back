@@ -29,7 +29,7 @@ public class EmailServiceImpl implements EmailService {
             JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
             mailSender.setHost(configuracionService.getValor("SMTP_HOST", "smtp.gmail.com"));
             
-            int port = configuracionService.getValorInt("SMTP_PORT", 587);
+            int port = configuracionService.getValorInt("SMTP_PORT", 465);
             mailSender.setPort(port);
             
             String username = configuracionService.getValor("SMTP_USERNAME", "ramirezsolongabriel91@gmail.com");
@@ -39,14 +39,15 @@ public class EmailServiceImpl implements EmailService {
             Properties props = mailSender.getJavaMailProperties();
             props.put("mail.transport.protocol", "smtp");
             props.put("mail.smtp.auth", configuracionService.getValor("SMTP_AUTH", "true"));
+            props.put("mail.smtp.ssl.protocols", "TLSv1.2"); // Forzar protocolo seguro
             
             // Lógica para alternar entre SSL (465) y STARTTLS (587)
             if (port == 465) {
                 props.put("mail.smtp.ssl.enable", "true");
                 props.put("mail.smtp.starttls.enable", "false");
-                // Configuración explícita del SocketFactory para SSL (Puerto 465)
-                props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-                props.put("mail.smtp.socketFactory.fallback", "false");
+                // Simplificación: Al habilitar ssl.enable, JavaMail usa el SocketFactory por defecto
+                // que respeta mejor la propiedad java.net.preferIPv4Stack
+                props.put("mail.smtp.auth", "true");
             } else {
                 props.put("mail.smtp.ssl.enable", "false");
                 props.put("mail.smtp.starttls.enable", configuracionService.getValor("SMTP_STARTTLS", "true"));
@@ -58,6 +59,9 @@ public class EmailServiceImpl implements EmailService {
             props.put("mail.smtp.writetimeout", "30000");
             props.put("mail.smtp.ssl.trust", "*"); // Confiar en el certificado del servidor (Soluciona problemas de handshake)
             // props.put("mail.debug", "true"); // Descomentar para ver logs detallados de envío
+
+            // Log de diagnóstico para ver en la consola de Render
+            System.out.println("Intentando enviar correo a: " + para + " | Host: " + mailSender.getHost() + ":" + mailSender.getPort() + " | Usuario: " + username);
 
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(username); // Es buena práctica establecer el remitente explícitamente
