@@ -66,6 +66,12 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
             crearSiNoExiste("BACKEND_URL", "http://localhost:8080", "URL base del Backend (API)");
         }
 
+        // --- NUEVO: Sincronizar credenciales de correo desde Variables de Entorno (Render) ---
+        updateConfigFromEnv("SPRING_MAIL_HOST", "SMTP_HOST");
+        updateConfigFromEnv("SPRING_MAIL_PORT", "SMTP_PORT");
+        updateConfigFromEnv("SPRING_MAIL_USERNAME", "SMTP_USERNAME");
+        updateConfigFromEnv("SPRING_MAIL_PASSWORD", "SMTP_PASSWORD");
+
         // Inicializar valores por defecto si no existen en la base de datos
         crearSiNoExiste("EMAIL_OFICIAL_ROBOTECH", "oficial@robotech.com", "Correo para recibir solicitudes de seguridad");
         crearSiNoExiste("TIEMPO_EDICION_MINUTOS", "15", "Tiempo en minutos habilitado para editar al Admin Principal");
@@ -80,6 +86,21 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
         crearSiNoExiste("SMTP_PASSWORD", "yhvp xlzo qppr aheg", "Contraseña o App Password para SMTP");
         crearSiNoExiste("SMTP_AUTH", "true", "Habilitar autenticación SMTP (true/false)");
         crearSiNoExiste("SMTP_STARTTLS", "true", "Habilitar STARTTLS (true/false)");
+    }
+
+    private void updateConfigFromEnv(String envVar, String dbKey) {
+        String value = System.getenv(envVar);
+        if (value != null && !value.isBlank()) {
+            repository.findByClave(dbKey).ifPresentOrElse(
+                config -> {
+                    if (!value.equals(config.getValor())) {
+                        config.setValor(value);
+                        repository.save(config);
+                    }
+                },
+                () -> repository.save(new ConfiguracionSistema(dbKey, value, "Sincronizado desde variable de entorno"))
+            );
+        }
     }
 
     private void crearSiNoExiste(String clave, String valor, String descripcion) {

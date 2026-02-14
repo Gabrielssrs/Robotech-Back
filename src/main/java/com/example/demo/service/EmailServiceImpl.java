@@ -33,6 +33,12 @@ public class EmailServiceImpl implements EmailService {
             props.put("mail.transport.protocol", "smtp");
             props.put("mail.smtp.auth", configuracionService.getValor("SMTP_AUTH", "true"));
             props.put("mail.smtp.starttls.enable", configuracionService.getValor("SMTP_STARTTLS", "true"));
+            
+            // Configuración para estabilidad en la nube (Render)
+            props.put("mail.smtp.connectiontimeout", "10000"); // 10 segundos
+            props.put("mail.smtp.timeout", "10000");
+            props.put("mail.smtp.writetimeout", "10000");
+            props.put("mail.smtp.ssl.trust", "*"); // Confiar en el certificado del servidor (Soluciona problemas de handshake)
             // props.put("mail.debug", "true"); // Descomentar para ver logs detallados de envío
 
             SimpleMailMessage message = new SimpleMailMessage();
