@@ -19,4 +19,3 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
     @EntityGraph(attributePaths = {"competidores", "roles"}) // Carga las listas de competidores y roles en la misma consulta
     Optional<Club> findByNombre(String nombre);
 }// En c:/Users/ramir/OneDrive/Desktop/demo/src/main/java/com/example/demo/repository/ClubRepository.java
-

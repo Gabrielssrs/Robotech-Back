@@ -77,7 +77,7 @@ public class SystemAdminController {
         String baseUrl = configuracionService.getValor("BASE_URL", "http://127.0.0.1:5501");
         
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", baseUrl + "/admin.html?desbloqueo=exitoso")
+                .header("Location", baseUrl + "/perfiladmin.html?desbloqueo=exitoso")
                 .build();
     }
 
