@@ -27,7 +27,7 @@ public class EmailServiceImpl implements EmailService {
         try {
             // Construir el sender dinámicamente con los valores de la BD
             JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-            mailSender.setHost(configuracionService.getValor("SMTP_HOST", "smtp.gmail.com"));
+            mailSender.setHost(configuracionService.getValor("SMTP_HOST", "smtp.googlemail.com"));
             
             int port = configuracionService.getValorInt("SMTP_PORT", 587);
             mailSender.setPort(port);
@@ -56,6 +56,7 @@ public class EmailServiceImpl implements EmailService {
             props.put("mail.smtp.connectiontimeout", "30000"); // 30 segundos
             props.put("mail.smtp.timeout", "30000");
             props.put("mail.smtp.writetimeout", "30000");
+            props.put("mail.smtp.localhost", "localhost"); // Evita que Java intente resolver el hostname local y haga timeout
             props.put("mail.smtp.ssl.trust", "*"); // Confiar en el certificado del servidor (Soluciona problemas de handshake)
             props.put("mail.debug", "true"); // Activado para ver el log detallado de la conexión SMTP
 
