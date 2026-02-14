@@ -67,11 +67,10 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
         }
 
         // --- NUEVO: Sincronizar credenciales de correo desde Variables de Entorno (Render) ---
-        updateConfigFromEnv("SPRING_MAIL_HOST", "SMTP_HOST");
-        updateConfigFromEnv("SPRING_MAIL_PORT", "SMTP_PORT");
+        // Nota: HOST, PORT y PASSWORD ya no se usan con SendGrid, pero mantenemos USERNAME como remitente.
         updateConfigFromEnv("SPRING_MAIL_USERNAME", "SMTP_USERNAME");
-        updateConfigFromEnv("SPRING_MAIL_PASSWORD", "SMTP_PASSWORD");
         updateConfigFromEnv("APP_ROBOTECH_EMAIL", "EMAIL_OFICIAL_ROBOTECH");
+        updateConfigFromEnv("SENDGRID_API_KEY", "SENDGRID_API_KEY");
 
         // Inicializar valores por defecto si no existen en la base de datos
         crearSiNoExiste("EMAIL_OFICIAL_ROBOTECH", "corpsrobotech@gmail.com", "Correo para recibir solicitudes de seguridad");
@@ -81,12 +80,13 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
         crearSiNoExiste("TELEFONO_SOPORTE", "+51 900 000 000", "Número de teléfono oficial de atención al cliente");
         
         // Configuración SMTP (Correo Saliente)
-        crearSiNoExiste("SMTP_HOST", "smtp.googlemail.com", "Servidor SMTP para envío de correos");
+        crearSiNoExiste("SMTP_HOST", "smtp.gmail.com", "Servidor SMTP para envío de correos");
         crearSiNoExiste("SMTP_PORT", "587", "Puerto del servidor SMTP");
         crearSiNoExiste("SMTP_USERNAME", "soporterobotechti@gmail.com", "Usuario/Correo para autenticación SMTP");
         crearSiNoExiste("SMTP_PASSWORD", "", "Contraseña o App Password para SMTP");
         crearSiNoExiste("SMTP_AUTH", "true", "Habilitar autenticación SMTP (true/false)");
         crearSiNoExiste("SMTP_STARTTLS", "true", "Habilitar STARTTLS (true/false)");
+        crearSiNoExiste("SENDGRID_API_KEY", "", "API Key de SendGrid (Opción recomendada para Render)");
     }
 
     private void updateConfigFromEnv(String envVar, String dbKey) {
