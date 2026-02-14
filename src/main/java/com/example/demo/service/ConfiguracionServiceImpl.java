@@ -41,6 +41,31 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
             crearSiNoExiste("BASE_URL", "http://127.0.0.1:5501", "URL base de la aplicación para enlaces en correos");
         }
 
+        // --- NUEVO: Configuración de BACKEND_URL (Para enlaces que apuntan a la API) ---
+        
+        // 1. Prioridad: Variable de entorno explícita BACKEND_URL (Manual)
+        String backendUrlEnv = System.getenv("BACKEND_URL");
+        
+        // 2. Fallback: Variable automática de Render (RENDER_EXTERNAL_URL)
+        if (backendUrlEnv == null || backendUrlEnv.isBlank()) {
+            backendUrlEnv = System.getenv("RENDER_EXTERNAL_URL");
+        }
+
+        if (backendUrlEnv != null && !backendUrlEnv.isBlank()) {
+            String finalUrl = backendUrlEnv;
+            repository.findByClave("BACKEND_URL").ifPresentOrElse(
+                config -> {
+                    if (!finalUrl.equals(config.getValor())) {
+                        config.setValor(finalUrl);
+                        repository.save(config);
+                    }
+                },
+                () -> repository.save(new ConfiguracionSistema("BACKEND_URL", finalUrl, "URL base del Backend (API)"))
+            );
+        } else {
+            crearSiNoExiste("BACKEND_URL", "http://localhost:8080", "URL base del Backend (API)");
+        }
+
         // Inicializar valores por defecto si no existen en la base de datos
         crearSiNoExiste("EMAIL_OFICIAL_ROBOTECH", "oficial@robotech.com", "Correo para recibir solicitudes de seguridad");
         crearSiNoExiste("TIEMPO_EDICION_MINUTOS", "15", "Tiempo en minutos habilitado para editar al Admin Principal");

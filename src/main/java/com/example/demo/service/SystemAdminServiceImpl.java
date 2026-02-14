@@ -151,8 +151,9 @@ public class SystemAdminServiceImpl implements SystemAdminService {
         solicitudEdicionRepository.save(solicitud);
 
         // Enviar correo
-        String baseUrl = configuracionService.getValor("BASE_URL", "http://localhost:8080");
-        String link = baseUrl + "/api/v1/admins/desbloquear?token=" + token;
+        // Usamos BACKEND_URL porque este enlace debe llegar al controlador de la API, no al frontend HTML
+        String backendUrl = configuracionService.getValor("BACKEND_URL", "http://localhost:8080");
+        String link = backendUrl + "/api/v1/admins/desbloquear?token=" + token;
         
         int minutos = configuracionService.getValorInt("TIEMPO_EDICION_MINUTOS", 15);
         
