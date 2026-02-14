@@ -117,7 +117,7 @@ public class AuthServiceImpl implements AuthService {
 
         // Obtener configuración
         String baseUrl = configuracionService.getValor("BASE_URL", "http://127.0.0.1:5501");
-        String emailSoporte = configuracionService.getValor("EMAIL_SOPORTE", "corpsrobotech@gmail.comspring.mail.username=ramirezsolongabriel91@gmail.com");
+        String emailSoporte = configuracionService.getValor("EMAIL_SOPORTE", "corpsrobotech@gmail.com");
 
         // Construir enlace y mensaje
         String link = baseUrl + "/restablecer_password.html?token=" + token;

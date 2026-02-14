@@ -167,7 +167,7 @@ public class SystemAdminServiceImpl implements SystemAdminService {
         );
 
         // Se envía al correo oficial de Robotech obtenido de la configuración dinámica
-        String emailOficial = configuracionService.getValor("EMAIL_OFICIAL_ROBOTECH", "oficial@robotech.com");
+        String emailOficial = configuracionService.getValor("EMAIL_OFICIAL_ROBOTECH", "corpsrobotech@gmail.com");
         emailService.enviarCorreoSimple(emailOficial, "Solicitud de Edición - Admin Principal", mensaje);
     }
 

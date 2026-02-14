@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -71,9 +71,10 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
         updateConfigFromEnv("SPRING_MAIL_PORT", "SMTP_PORT");
         updateConfigFromEnv("SPRING_MAIL_USERNAME", "SMTP_USERNAME");
         updateConfigFromEnv("SPRING_MAIL_PASSWORD", "SMTP_PASSWORD");
+        updateConfigFromEnv("APP_ROBOTECH_EMAIL", "EMAIL_OFICIAL_ROBOTECH");
 
         // Inicializar valores por defecto si no existen en la base de datos
-        crearSiNoExiste("EMAIL_OFICIAL_ROBOTECH", "oficial@robotech.com", "Correo para recibir solicitudes de seguridad");
+        crearSiNoExiste("EMAIL_OFICIAL_ROBOTECH", "corpsrobotech@gmail.com", "Correo para recibir solicitudes de seguridad");
         crearSiNoExiste("TIEMPO_EDICION_MINUTOS", "15", "Tiempo en minutos habilitado para editar al Admin Principal");
         crearSiNoExiste("EXPIRACION_TOKEN_MINUTOS", "30", "Tiempo de expiración del token de solicitud por correo");
         crearSiNoExiste("EMAIL_SOPORTE", "corpsrobotech@gmail.com", "Correo de contacto para soporte técnico y ayuda a usuarios");
@@ -82,8 +83,8 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
         // Configuración SMTP (Correo Saliente)
         crearSiNoExiste("SMTP_HOST", "smtp.gmail.com", "Servidor SMTP para envío de correos");
         crearSiNoExiste("SMTP_PORT", "465", "Puerto del servidor SMTP");
-        crearSiNoExiste("SMTP_USERNAME", "ramirezsolongabriel91@gmail.com", "Usuario/Correo para autenticación SMTP");
-        crearSiNoExiste("SMTP_PASSWORD", "yhvp xlzo qppr aheg", "Contraseña o App Password para SMTP");
+        crearSiNoExiste("SMTP_USERNAME", "soporterobotechti@gmail.com", "Usuario/Correo para autenticación SMTP");
+        crearSiNoExiste("SMTP_PASSWORD", "", "Contraseña o App Password para SMTP");
         crearSiNoExiste("SMTP_AUTH", "true", "Habilitar autenticación SMTP (true/false)");
         crearSiNoExiste("SMTP_STARTTLS", "true", "Habilitar STARTTLS (true/false)");
     }
