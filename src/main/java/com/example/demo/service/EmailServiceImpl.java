@@ -27,9 +27,9 @@ public class EmailServiceImpl implements EmailService {
         try {
             // Construir el sender dinámicamente con los valores de la BD
             JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-            mailSender.setHost(configuracionService.getValor("SMTP_HOST", "smtp.googlemail.com"));
+            mailSender.setHost(configuracionService.getValor("SMTP_HOST", "smtp.gmail.com"));
             
-            int port = configuracionService.getValorInt("SMTP_PORT", 465);
+            int port = configuracionService.getValorInt("SMTP_PORT", 587);
             mailSender.setPort(port);
             
             String username = configuracionService.getValor("SMTP_USERNAME", "soporterobotechti@gmail.com");
@@ -39,7 +39,6 @@ public class EmailServiceImpl implements EmailService {
             Properties props = mailSender.getJavaMailProperties();
             props.put("mail.transport.protocol", "smtp");
             props.put("mail.smtp.auth", configuracionService.getValor("SMTP_AUTH", "true"));
-            props.put("mail.smtp.ssl.protocols", "TLSv1.2"); // Forzar protocolo seguro
             
             // Lógica para alternar entre SSL (465) y STARTTLS (587)
             if (port == 465) {
