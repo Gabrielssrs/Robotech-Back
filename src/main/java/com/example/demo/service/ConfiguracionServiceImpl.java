@@ -81,7 +81,7 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
         
         // Configuración SMTP (Correo Saliente)
         crearSiNoExiste("SMTP_HOST", "smtp.gmail.com", "Servidor SMTP para envío de correos");
-        crearSiNoExiste("SMTP_PORT", "587", "Puerto del servidor SMTP");
+        crearSiNoExiste("SMTP_PORT", "465", "Puerto del servidor SMTP");
         crearSiNoExiste("SMTP_USERNAME", "ramirezsolongabriel91@gmail.com", "Usuario/Correo para autenticación SMTP");
         crearSiNoExiste("SMTP_PASSWORD", "yhvp xlzo qppr aheg", "Contraseña o App Password para SMTP");
         crearSiNoExiste("SMTP_AUTH", "true", "Habilitar autenticación SMTP (true/false)");
