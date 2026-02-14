@@ -1,5 +1,6 @@
 package com.example.demo.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -16,4 +17,10 @@ public class AdminUpdateRequest {
 
     @Pattern(regexp = "9\\d{8}", message = "El teléfono debe empezar con 9 y tener 9 dígitos numéricos.")
     private String telefono;
+
+    @Email(message = "Formato de correo inválido")
+    private String correo;
+
+    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    private String contrasena;
 }

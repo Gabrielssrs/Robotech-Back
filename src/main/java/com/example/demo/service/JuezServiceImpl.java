@@ -46,6 +46,28 @@ public class JuezServiceImpl implements JuezService {
     @Override
     @Transactional
     public JuezResponse createJuez(JuezRequest request) {
+        // 1. Validar formato de correo electrónico
+        if (request.getCorreo() == null || !request.getCorreo().matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+            throw new IllegalArgumentException("El formato del correo electrónico no es válido.");
+        }
+
+        // 2. Validar formato de DNI (8 dígitos numéricos)
+        if (request.getDni() == null || !request.getDni().matches("^\\d{8}$")) {
+            throw new IllegalArgumentException("El DNI debe tener 8 dígitos.");
+        }
+
+        // 3. Validar formato de teléfono (9 dígitos y empieza con 9)
+        if (request.getTelefono() == null || !request.getTelefono().matches("^9\\d{8}$")) {
+            throw new IllegalArgumentException("El teléfono debe tener 9 dígitos y comenzar con 9.");
+        }
+
+        // 4. Validar complejidad de contraseña
+        // Requisitos: Mínimo 8 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial
+        String passwordRegex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
+        if (request.getContrasena() == null || !request.getContrasena().matches(passwordRegex)) {
+            throw new IllegalArgumentException("La contraseña no cumple con los requisitos de complejidad (Min 8 caracteres, 1 Mayúscula, 1 Minúscula, 1 Número, 1 Especial).");
+        }
+
         if (juezRepository.existsByCorreo(request.getCorreo())) {
             throw new IllegalArgumentException("El correo electrónico ya está en uso.");
         }

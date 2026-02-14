@@ -47,9 +47,9 @@ public class Administrador implements UserDetails {
     @JoinTable(name = "administrador_roles", joinColumns = @JoinColumn(name = "administrador_id"), inverseJoinColumns = @JoinColumn(name = "rol_id"))
     private Set<Rol> roles = new HashSet<>();
 
-    // --- Campo para manejar el estado (Activo/Inactivo) ---
-    @Column(name = "is_enabled", nullable = false)
-    private boolean isEnabled = true;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", nullable = false)
+    private AdministradorEstado estado;
 
     // --- Implementación de UserDetails ---
 
@@ -87,6 +87,13 @@ public class Administrador implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return this.isEnabled;
+        return this.estado == AdministradorEstado.ACTIVO;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.estado == null) {
+            this.estado = AdministradorEstado.ACTIVO;
+        }
     }
 }

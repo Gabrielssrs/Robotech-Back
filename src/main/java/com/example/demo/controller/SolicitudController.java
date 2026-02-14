@@ -1,8 +1,8 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.SolicitudRequest;
 import jakarta.validation.Valid;
 import com.example.demo.model.Solicitud;
+import com.example.demo.repository.SolicitudRequest;
 import com.example.demo.service.SolicitudService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

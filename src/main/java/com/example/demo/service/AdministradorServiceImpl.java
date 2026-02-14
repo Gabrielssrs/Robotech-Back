@@ -55,8 +55,11 @@ public class AdministradorServiceImpl implements AdministradorService {
     }
 
     private AdminResponse mapToAdminResponse(Administrador admin) {
+        String rol = admin.getRoles().isEmpty() ? "SIN_ROL" : admin.getRoles().iterator().next().getRol().name();
+        String estado = admin.getEstado() != null ? admin.getEstado().name() : "ACTIVO";
         return new AdminResponse(
-                admin.getId(), admin.getNombre(), admin.getDni(), admin.getTelefono(), admin.getCorreo(), admin.isEnabled()
+                // Asegúrate de que admin.getId() no sea null
+                admin.getId(), admin.getNombre(), admin.getDni(), admin.getTelefono(), admin.getCorreo(), rol, estado
                 // Se elimina fotoUrl de la respuesta
         );
     }

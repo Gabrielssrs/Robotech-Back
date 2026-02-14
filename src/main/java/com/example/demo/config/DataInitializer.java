@@ -3,6 +3,7 @@ package com.example.demo.config;
 import com.example.demo.model.Administrador;
 import com.example.demo.model.Rol;
 import com.example.demo.model.RolNombre;
+import com.example.demo.model.AdministradorEstado;
 import com.example.demo.repository.AdministradorRepository;
 import com.example.demo.repository.RolRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setNombre("Administrador del Sistema"); // Nombre por defecto
             admin.setDni("00000000"); // DNI por defecto para cumplir restricción NOT NULL
             admin.setTelefono(null); // Teléfono nulo inicialmente
-            admin.setEnabled(true); // Hacemos explícito que el admin se crea activo
+            admin.setEstado(AdministradorEstado.ACTIVO); // Hacemos explícito que el admin se crea activo
             administradorRepository.save(admin);
         }
     }

@@ -26,6 +26,10 @@ public class SolicitudServiceImpl implements SolicitudService {
     @Override
     @Transactional
     public Solicitud createSolicitud(Solicitud solicitud, @NonNull Long clubId) {
+        if (solicitud.getCorreoElectronico() == null || !solicitud.getCorreoElectronico().matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+            throw new IllegalArgumentException("El formato del correo electrónico no es válido.");
+        }
+
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new IllegalArgumentException("Club no encontrado con ID: " + clubId));
         solicitud.setClub(club);

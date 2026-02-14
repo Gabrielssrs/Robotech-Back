@@ -20,6 +20,7 @@ public class AdminProfileController {
     @GetMapping("/perfil")
     @PreAuthorize("hasAuthority('ROLE_ADM_SISTEMA')")
     public ResponseEntity<AdminResponse> getAdminProfile(Authentication authentication) {
+        // El endpoint es /api/v1/admin/perfil
         String adminEmail = authentication.getName();
         AdminResponse adminProfile = administradorService.getAdminByEmail(adminEmail);
         return ResponseEntity.ok(adminProfile);

@@ -10,9 +10,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -30,7 +35,10 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Añadir filtro JWT
                 .authorizeHttpRequests(auth -> auth
                         // --- Endpoints Públicos ---
-                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/", "/index.html", "/login.html", "/recuperar_password.html", "/restablecer_password.html").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/error").permitAll() // Permitir acceso a la página de error para evitar 403 en caso de 404
+                        .requestMatchers("/api/auth/login", "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/solicitudes/crear/**").permitAll() // Permitir crear solicitudes
                         .requestMatchers(HttpMethod.POST, "/api/solicitudes").permitAll() // Permitir enviar solicitudes de inscripción
                         .requestMatchers(HttpMethod.POST, "/api/competidores/registro-con-codigo").permitAll() // CORREGIDO: La URL debe coincidir con el controlador
@@ -42,11 +50,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/ranking/**").permitAll() // <--- Agrega esta línea para hacer público el ranking
                         .requestMatchers(HttpMethod.GET, "/api/torneos/*/reglamento").permitAll() // Permitir ver reglamento
 
+                        // Endpoint público para desbloquear edición (link de correo)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/admins/desbloquear").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/torneos", "/api/categorias").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/torneos/*/inscripcion").hasAuthority("ROLE_COMPETIDOR")
 
 
                         // --- Endpoints de Administrador de Sistema ---
+                        .requestMatchers("/api/v1/admins/**").hasAuthority("ROLE_ADM_SISTEMA")
+                        .requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADM_SISTEMA")
                         .requestMatchers(HttpMethod.POST, "/api/jueces").hasAuthority("ROLE_ADM_SISTEMA")
                         .requestMatchers("/api/jueces/**").hasAuthority("ROLE_ADM_SISTEMA") // Incluye GET, PUT, DELETE, POST para estados
                         .requestMatchers(HttpMethod.GET, "/api/solicitudes-retiro").hasAuthority("ROLE_ADM_SISTEMA") // Ver todas las solicitudes
@@ -75,5 +88,18 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5500", "http://localhost:5501", "http://127.0.0.1:5500", "http://127.0.0.1:5501")); // Ajusta según tu frontend
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
