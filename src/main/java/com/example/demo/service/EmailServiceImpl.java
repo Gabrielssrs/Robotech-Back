@@ -16,12 +16,14 @@ public class EmailServiceImpl implements EmailService {
 
     private final ConfiguracionService configuracionService;
 
+    // Bloque estático para asegurar que la preferencia IPv4 se establezca al cargar la clase
+    static {
+        System.setProperty("java.net.preferIPv4Stack", "true");
+    }
+
     @Override
     @Async // Para enviar correos en un hilo separado y no bloquear la respuesta HTTP
     public void enviarCorreoSimple(String para, String asunto, String texto) {
-        // Forzar IPv4 para evitar problemas de conexión en Render/Docker
-        System.setProperty("java.net.preferIPv4Stack", "true");
-
         try {
             // Construir el sender dinámicamente con los valores de la BD
             JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
@@ -42,6 +44,9 @@ public class EmailServiceImpl implements EmailService {
             if (port == 465) {
                 props.put("mail.smtp.ssl.enable", "true");
                 props.put("mail.smtp.starttls.enable", "false");
+                // Configuración explícita del SocketFactory para SSL (Puerto 465)
+                props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+                props.put("mail.smtp.socketFactory.fallback", "false");
             } else {
                 props.put("mail.smtp.ssl.enable", "false");
                 props.put("mail.smtp.starttls.enable", configuracionService.getValor("SMTP_STARTTLS", "true"));

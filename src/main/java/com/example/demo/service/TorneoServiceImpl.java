@@ -64,10 +64,9 @@ public class TorneoServiceImpl implements TorneoService {
 
             // Lógica de Fechas Automática
             if (request.getFechaInicioInscripcion() != null && request.getDiasInscripcion() != null) {
-                // Comentado para permitir cualquier duración en pruebas
-                // if (!List.of(1, 3, 5).contains(request.getDiasInscripcion())) {
-                //    throw new IllegalArgumentException("La duración de inscripción debe ser de 1, 3 o 5 días.");
-                // }
+                if (!List.of(3, 7, 15).contains(request.getDiasInscripcion())) {
+                   throw new IllegalArgumentException("La duración de inscripción debe ser de 3, 7 o 15 días.");
+                }
                 LocalDate inicioInscripcion = request.getFechaInicioInscripcion();
                 LocalDate finInscripcion = inicioInscripcion.plusDays(request.getDiasInscripcion());
                 LocalDate inicioTorneo = finInscripcion; // Modificado: Torneo inicia el mismo día para pruebas
