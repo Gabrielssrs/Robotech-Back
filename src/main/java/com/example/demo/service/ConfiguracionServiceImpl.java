@@ -81,8 +81,8 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
         crearSiNoExiste("TELEFONO_SOPORTE", "+51 900 000 000", "Número de teléfono oficial de atención al cliente");
         
         // Configuración SMTP (Correo Saliente)
-        crearSiNoExiste("SMTP_HOST", "smtp.gmail.com", "Servidor SMTP para envío de correos");
-        crearSiNoExiste("SMTP_PORT", "587", "Puerto del servidor SMTP");
+        crearSiNoExiste("SMTP_HOST", "smtp.googlemail.com", "Servidor SMTP para envío de correos");
+        crearSiNoExiste("SMTP_PORT", "465", "Puerto del servidor SMTP");
         crearSiNoExiste("SMTP_USERNAME", "soporterobotechti@gmail.com", "Usuario/Correo para autenticación SMTP");
         crearSiNoExiste("SMTP_PASSWORD", "", "Contraseña o App Password para SMTP");
         crearSiNoExiste("SMTP_AUTH", "true", "Habilitar autenticación SMTP (true/false)");

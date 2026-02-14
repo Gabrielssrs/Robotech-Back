@@ -27,9 +27,9 @@ public class EmailServiceImpl implements EmailService {
         try {
             // Construir el sender dinámicamente con los valores de la BD
             JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-            mailSender.setHost(configuracionService.getValor("SMTP_HOST", "smtp.gmail.com"));
+            mailSender.setHost(configuracionService.getValor("SMTP_HOST", "smtp.googlemail.com"));
             
-            int port = configuracionService.getValorInt("SMTP_PORT", 587);
+            int port = configuracionService.getValorInt("SMTP_PORT", 465);
             mailSender.setPort(port);
             
             String username = configuracionService.getValor("SMTP_USERNAME", "soporterobotechti@gmail.com");
@@ -45,10 +45,8 @@ public class EmailServiceImpl implements EmailService {
             if (port == 465) {
                 props.put("mail.smtp.ssl.enable", "true");
                 props.put("mail.smtp.starttls.enable", "false");
-                // Configuración explícita del SocketFactory para SSL (Puerto 465)
-                props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-                props.put("mail.smtp.socketFactory.fallback", "false");
-                props.put("mail.smtp.socketFactory.port", String.valueOf(port));
+                // Aseguramos que no haya socketFactory explícito que cause conflictos con IPv6/Render
+                props.remove("mail.smtp.socketFactory.class");
             } else {
                 props.put("mail.smtp.ssl.enable", "false");
                 props.put("mail.smtp.starttls.enable", "true");
