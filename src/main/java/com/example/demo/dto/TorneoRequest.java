@@ -2,7 +2,6 @@ package com.example.demo.dto;
 
 import com.example.demo.model.TorneoEstado;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -27,7 +26,6 @@ public class TorneoRequest {
     private LocalDate fechaFin;
 
     @NotNull(message = "La fecha de inicio de inscripciones es obligatoria")
-    @FutureOrPresent(message = "La fecha de inscripción no puede ser en el pasado")
     private LocalDate fechaInicioInscripcion;
 
     @NotNull(message = "La duración de inscripción es obligatoria")

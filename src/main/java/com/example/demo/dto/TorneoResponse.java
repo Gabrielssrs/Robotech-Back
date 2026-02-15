@@ -15,9 +15,13 @@ public class TorneoResponse {
     private LocalDate fechaInicio;
     private LocalTime horaInicio;
     private LocalDate fechaFin;
+    private LocalDate fechaInicioInscripcion;
+    private Integer diasInscripcion;
     private String nombreSede;
     private Long sedeId;
     private boolean activo;
     private String estado;
     private List<String> categorias;
+    private List<Long> categoriaIds;
+    private List<Long> juezIds;
 }

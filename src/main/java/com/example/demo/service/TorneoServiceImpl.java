@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
@@ -148,6 +149,7 @@ public class TorneoServiceImpl implements TorneoService {
         if (request.getFechaInicio() != null) torneo.setFechaInicio(request.getFechaInicio());
         if (request.getFechaFin() != null) torneo.setFechaFin(request.getFechaFin());
         if (request.getHoraInicio() != null) torneo.setHoraInicio(request.getHoraInicio());
+        if (request.getFechaInicioInscripcion() != null) torneo.setFechaInicioInscripcion(request.getFechaInicioInscripcion());
         if (request.getFechaLimiteInscripcion() != null) torneo.setFechaLimiteInscripcion(request.getFechaLimiteInscripcion());
         
         if (request.getSedeId() != null) {
@@ -721,6 +723,19 @@ public class TorneoServiceImpl implements TorneoService {
                 .map(Categoria::getNombre)
                 .collect(Collectors.toList());
 
+        List<Long> categoriaIds = torneo.getCategorias().stream()
+                .map(Categoria::getId)
+                .collect(Collectors.toList());
+
+        List<Long> juezIds = torneo.getJueces().stream()
+                .map(Juez::getId)
+                .collect(Collectors.toList());
+
+        Integer diasInscripcion = 0;
+        if (torneo.getFechaInicioInscripcion() != null && torneo.getFechaLimiteInscripcion() != null) {
+            diasInscripcion = (int) ChronoUnit.DAYS.between(torneo.getFechaInicioInscripcion(), torneo.getFechaLimiteInscripcion());
+        }
+
         return new TorneoResponse(
                 torneo.getId(),
                 torneo.getNombre(),
@@ -728,11 +743,15 @@ public class TorneoServiceImpl implements TorneoService {
                 torneo.getFechaInicio(),
                 torneo.getHoraInicio(),
                 torneo.getFechaFin(),
+                torneo.getFechaInicioInscripcion(),
+                diasInscripcion,
                 torneo.getSede() != null ? torneo.getSede().getNombre() : "Sin Sede",
                 torneo.getSede() != null ? torneo.getSede().getId() : null,
                 torneo.isActivo(),
                 torneo.getEstado().name(),
-                categoriasNombres
+                categoriasNombres,
+                categoriaIds,
+                juezIds
         );
     }
 }
