@@ -1,11 +1,13 @@
-package com.example.demo.repository;
+package com.example.demo.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class SolicitudRequest {
     private String nombreCompleto;
     private String correoElectronico;
-    private Long clubId; // Usamos el ID del club
+    @NotNull(message = "El ID del club es obligatorio")
+    private Long clubId;
     private String descripcionSolicitud;
 }

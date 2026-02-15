@@ -159,7 +159,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (updated) {
             passwordResetTokenRepository.delete(resetToken); // Consumir el token
-        } else {
+        } else { 
             throw new IllegalArgumentException("Error al actualizar la contraseña: Usuario no encontrado.");
         }
     }
