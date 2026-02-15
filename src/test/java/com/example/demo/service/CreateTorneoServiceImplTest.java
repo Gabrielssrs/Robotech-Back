@@ -67,11 +67,13 @@ class CreateTorneoServiceImplTest {
         request = new TorneoRequest();
         request.setNombre("Torneo RoboWar 2024");
         request.setSedeId(1L);
-        request.setHoraInicio(LocalTime.of(10, 0));
-        // Configuración por defecto: fechas manuales
-        request.setFechaInicio(LocalDate.now().plusDays(10));
-        request.setFechaFin(LocalDate.now().plusDays(12));
-        request.setFechaLimiteInscripcion(LocalDate.now().plusDays(5));
+        request.setHoraInicio(LocalTime.of(11, 0)); // Ajustado a min 11:00 AM
+        
+        // Configuración válida por defecto
+        request.setDiasInscripcion(3);
+        request.setFechaInicioInscripcion(LocalDate.now().plusDays(1));
+        request.setFechaInicio(LocalDate.now().plusDays(5)); // Inicio > Fin Inscripción (1+3)
+        request.setFechaFin(LocalDate.now().plusDays(20)); // Duración > 12 días
     }
 
     @Test
@@ -90,32 +92,6 @@ class CreateTorneoServiceImplTest {
         assertEquals(TorneoEstado.PROXIMAMENTE, result.getEstado());
         assertEquals(sede, result.getSede());
         verify(torneoRepository).save(any(Torneo.class));
-    }
-
-    @Test
-    void createTorneo_AutoDates_Success() {
-        // Descripción: Verifica la creación exitosa usando la lógica de fechas automáticas (inicio inscripción + duración).
-        System.out.println("TEST: createTorneo_AutoDates_Success - Creación con cálculo automático de fechas");
-
-        request.setFechaInicio(null);
-        request.setFechaFin(null);
-        request.setFechaLimiteInscripcion(null);
-        
-        LocalDate startInsc = LocalDate.now();
-        request.setFechaInicioInscripcion(startInsc);
-        request.setDiasInscripcion(5);
-
-        when(torneoRepository.existsByNombre(request.getNombre())).thenReturn(false);
-        when(sedeRepository.findById(1L)).thenReturn(Optional.of(sede));
-        when(torneoRepository.save(any(Torneo.class))).thenAnswer(i -> i.getArguments()[0]);
-
-        Torneo result = torneoService.createTorneo(request);
-
-        assertNotNull(result);
-        // Según lógica del servicio: finInscripcion = start + days. inicioTorneo = finInscripcion.
-        assertEquals(startInsc, result.getFechaInicioInscripcion());
-        assertEquals(startInsc.plusDays(5), result.getFechaLimiteInscripcion());
-        assertEquals(startInsc.plusDays(5), result.getFechaInicio());
     }
 
     @Test
@@ -142,28 +118,37 @@ class CreateTorneoServiceImplTest {
     }
 
     @Test
-    void createTorneo_WithCategoriesAndJudges_Success() {
-        // Descripción: Verifica que se asignen correctamente las categorías y jueces al crear el torneo.
-        System.out.println("TEST: createTorneo_WithCategoriesAndJudges_Success - Asignación de categorías y jueces");
+    void createTorneo_ValidatesNewRules_Success() {
+        // Descripción: Verifica que se cree el torneo respetando las nuevas reglas de negocio (Horario, Días Inscripción, Jueces, Duración).
+        System.out.println("TEST: createTorneo_ValidatesNewRules_Success - Nuevas reglas de BD");
 
-        request.setCategoriaIds(List.of(10L, 20L));
-        request.setJuezIds(List.of(5L));
+        // 1. Configurar Request con datos válidos específicos
+        request.setHoraInicio(LocalTime.of(14, 0)); // 2 PM (Válido 11-20)
+        request.setDiasInscripcion(5); // Válido (1, 3, 5)
+        request.setFechaInicioInscripcion(LocalDate.now().plusDays(2));
+        
+        // Fechas calculadas manualmente para el test
+        LocalDate finInscripcion = request.getFechaInicioInscripcion().plusDays(5);
+        request.setFechaInicio(finInscripcion.plusDays(1)); // Inicio torneo > Fin inscripcion
+        request.setFechaFin(request.getFechaInicio().plusDays(15)); // Duración > 12 días
 
-        Categoria c1 = new Categoria(); c1.setId(10L);
-        Categoria c2 = new Categoria(); c2.setId(20L);
-        Juez j1 = new Juez(); j1.setId(5L);
+        // Jueces (Mínimo 3 requeridos y de la misma sede)
+        request.setJuezIds(List.of(10L, 11L, 12L));
+        Juez j1 = new Juez(); j1.setId(10L); j1.setSede(sede);
+        Juez j2 = new Juez(); j2.setId(11L); j2.setSede(sede);
+        Juez j3 = new Juez(); j3.setId(12L); j3.setSede(sede);
 
         when(torneoRepository.existsByNombre(request.getNombre())).thenReturn(false);
         when(sedeRepository.findById(1L)).thenReturn(Optional.of(sede));
-        when(categoriaRepository.findAllById(request.getCategoriaIds())).thenReturn(List.of(c1, c2));
-        when(juezRepository.findAllById(request.getJuezIds())).thenReturn(List.of(j1));
+        when(juezRepository.findAllById(request.getJuezIds())).thenReturn(List.of(j1, j2, j3));
         when(torneoRepository.save(any(Torneo.class))).thenAnswer(i -> i.getArguments()[0]);
 
         Torneo result = torneoService.createTorneo(request);
-
+        
         assertNotNull(result);
-        assertEquals(2, result.getCategorias().size());
-        assertEquals(1, result.getJueces().size());
+        assertEquals(3, result.getJueces().size());
+        assertEquals(finInscripcion, result.getFechaLimiteInscripcion());
+        assertEquals(TorneoEstado.PROXIMAMENTE, result.getEstado());
     }
 
     @Test

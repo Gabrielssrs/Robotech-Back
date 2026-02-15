@@ -50,44 +50,54 @@ public class TorneoServiceImpl implements TorneoService {
                 throw new IllegalArgumentException("El nombre del torneo ya existe.");
             }
 
-            // Validación: Máximo 3 torneos iniciados el mismo día
-            // Comentado para permitir pruebas ilimitadas
-            // List<Torneo> torneosMismoDia = torneoRepository.findByFechaInicio(request.getFechaInicio());
-            // if (torneosMismoDia.size() >= 3) {
-            //    throw new IllegalArgumentException("Ya existen 3 torneos programados para esta fecha.");
-            // }
-
             Torneo torneo = new Torneo();
             torneo.setNombre(request.getNombre());
             torneo.setDescripcion(request.getDescripcion());
+
+            // --- Lógica de Horario (11:00 AM a 8:00 PM) ---
+            LocalTime horaMinima = LocalTime.of(11, 0);
+            LocalTime horaMaxima = LocalTime.of(20, 0);
+            if (request.getHoraInicio().isBefore(horaMinima) || request.getHoraInicio().isAfter(horaMaxima)) {
+                throw new IllegalArgumentException("La hora de inicio debe estar entre las 11:00 AM y las 8:00 PM.");
+            }
             torneo.setHoraInicio(request.getHoraInicio());
 
-            // Lógica de Fechas Automática
-            if (request.getFechaInicioInscripcion() != null && request.getDiasInscripcion() != null) {
-                if (!List.of(3, 7, 15).contains(request.getDiasInscripcion())) {
-                   throw new IllegalArgumentException("La duración de inscripción debe ser de 3, 7 o 15 días.");
-                }
-                LocalDate inicioInscripcion = request.getFechaInicioInscripcion();
-                LocalDate finInscripcion = inicioInscripcion.plusDays(request.getDiasInscripcion());
-                LocalDate inicioTorneo = finInscripcion; // Modificado: Torneo inicia el mismo día para pruebas
-                
-                // Cronograma: Octavos (Día 1) -> Cuartos (Día 2) -> Semis (Día 3) -> Final (Día 4)
-                // Total duración torneo: 4 días (inicio + 3 días)
-                LocalDate finTorneo = inicioTorneo; // Modificado: Todo ocurre el mismo día para pruebas
-
-                torneo.setFechaInicioInscripcion(inicioInscripcion);
-                torneo.setFechaLimiteInscripcion(finInscripcion);
-                torneo.setFechaInicio(inicioTorneo);
-                torneo.setFechaFin(finTorneo);
-            } else {
-                torneo.setFechaInicio(request.getFechaInicio());
-                torneo.setFechaFin(request.getFechaFin());
-                torneo.setFechaLimiteInscripcion(request.getFechaLimiteInscripcion());
+            // --- Lógica de Fechas de Inscripción ---
+            if (!List.of(1, 3, 5).contains(request.getDiasInscripcion())) {
+                throw new IllegalArgumentException("La duración de inscripción debe ser de 1, 3 o 5 días.");
             }
+            
+            LocalDate inicioInscripcion = request.getFechaInicioInscripcion();
+            // Validar que no sea fecha pasada
+            if (inicioInscripcion.isBefore(LocalDate.now())) {
+                throw new IllegalArgumentException("La fecha de inicio de inscripciones no puede ser en el pasado.");
+            }
+
+            LocalDate finInscripcion = inicioInscripcion.plusDays(request.getDiasInscripcion());
+            torneo.setFechaInicioInscripcion(inicioInscripcion);
+            torneo.setFechaLimiteInscripcion(finInscripcion);
+
+            // --- Lógica de Fechas del Torneo ---
+            LocalDate inicioTorneo = request.getFechaInicio();
+            
+            // El torneo debe iniciar DESPUÉS de que cierren las inscripciones
+            if (!inicioTorneo.isAfter(finInscripcion)) {
+                throw new IllegalArgumentException("El torneo debe iniciar después de la fecha de cierre de inscripciones (" + finInscripcion + ").");
+            }
+
+            LocalDate finTorneo = request.getFechaFin();
+            // La fecha de fin debe ser mínimo 12 días después del inicio
+            if (finTorneo.isBefore(inicioTorneo.plusDays(12))) {
+                throw new IllegalArgumentException("La duración del torneo debe ser de al menos 12 días.");
+            }
+
+            torneo.setFechaInicio(inicioTorneo);
+            torneo.setFechaFin(finTorneo);
 
             Sede sede = sedeRepository.findById(request.getSedeId())
                     .orElseThrow(() -> new IllegalArgumentException("Sede no encontrada con ID: " + request.getSedeId()));
             torneo.setSede(sede);
+
             // Estado por defecto PROXIMAMENTE si no viene en el request
             torneo.setEstado(request.getEstado() != null ? request.getEstado() : TorneoEstado.PROXIMAMENTE);
 
@@ -97,7 +107,18 @@ public class TorneoServiceImpl implements TorneoService {
             }
 
             if (request.getJuezIds() != null && !request.getJuezIds().isEmpty()) {
+                if (request.getJuezIds().size() < 3) {
+                    throw new IllegalArgumentException("Debe seleccionar al menos 3 jueces.");
+                }
                 List<Juez> jueces = juezRepository.findAllById(request.getJuezIds());
+                
+                // Validar que los jueces pertenezcan a la sede seleccionada
+                for (Juez juez : jueces) {
+                    // Asumiendo que Juez tiene relación con Sede, si no, habría que ajustar el modelo Juez
+                    if (juez.getSede() == null || !juez.getSede().getId().equals(sede.getId())) {
+                        throw new IllegalArgumentException("El juez " + juez.getNombre() + " no pertenece a la sede seleccionada (" + sede.getNombre() + ").");
+                    }
+                }
                 torneo.getJueces().addAll(jueces);
             }
 

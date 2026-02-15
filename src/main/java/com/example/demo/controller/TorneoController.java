@@ -28,12 +28,12 @@ public class TorneoController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_ADM_SISTEMA')")
-    public ResponseEntity<?> createTorneo(@RequestBody TorneoRequest request) {
+    public ResponseEntity<?> createTorneo(@Valid @RequestBody TorneoRequest request) {
         try {
             Torneo nuevoTorneo = torneoService.createTorneo(request);
             return new ResponseEntity<>(nuevoTorneo, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al crear el torneo: " + e.getMessage());
         }
@@ -41,7 +41,7 @@ public class TorneoController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADM_SISTEMA')")
-    public ResponseEntity<?> updateTorneo(@PathVariable Long id, @RequestBody TorneoRequest request) {
+    public ResponseEntity<?> updateTorneo(@PathVariable Long id, @Valid @RequestBody TorneoRequest request) {
         try {
             Torneo torneoActualizado = torneoService.updateTorneo(id, request);
             return ResponseEntity.ok(torneoActualizado);
