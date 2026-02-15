@@ -117,6 +117,13 @@ public class TorneoController {
         return ResponseEntity.ok().body(Map.of("message", "Encuentro simulado con puntajes"));
     }
 
+    @PostMapping("/{id}/simular-completo")
+    @PreAuthorize("hasAuthority('ROLE_ADM_SISTEMA')")
+    public ResponseEntity<?> simularTorneoCompleto(@PathVariable Long id) {
+        torneoService.simularTorneoCompleto(id);
+        return ResponseEntity.ok().body(Map.of("message", "Torneo simulado y finalizado exitosamente."));
+    }
+
     @GetMapping("/mis-torneos")
     @PreAuthorize("hasAuthority('ROLE_JUEZ')")
     public ResponseEntity<List<TorneoResponse>> getMisTorneos(Authentication authentication) {

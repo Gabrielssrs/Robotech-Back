@@ -506,7 +506,7 @@ public class TorneoServiceImpl implements TorneoService {
             List<Juez> jueces = new ArrayList<>(encuentro.getTorneo().getJueces());
 
             if (jueces.isEmpty()) {
-                System.out.println("DEBUG: No hay jueces asignados. Usando simulación simple.");
+                System.out.println("WARN: No hay jueces asignados. Usando simulación simple (Sin guardar en tabla Calificaciones).");
                 double puntosA = Math.round(Math.random() * 100.0) / 10.0;
                 double puntosB = Math.round(Math.random() * 100.0) / 10.0;
                 while (puntosA == puntosB) puntosB = Math.round(Math.random() * 100.0) / 10.0;
@@ -515,24 +515,29 @@ public class TorneoServiceImpl implements TorneoService {
                 System.out.println("DEBUG: Puntos generados -> Robot A: " + puntosA + ", Robot B: " + puntosB);
             } else {
                 System.out.println("DEBUG: Simulando votos para " + jueces.size() + " jueces.");
+                // 1. Generar y guardar calificaciones individuales por juez para cada robot
                 for (Juez juez : jueces) {
                     simularVotoJuez(encuentro, encuentro.getRobotA(), juez);
                     simularVotoJuez(encuentro, encuentro.getRobotB(), juez);
                 }
 
+                // 2. Calcular el promedio de las calificaciones guardadas
                 double promedioA = obtenerPromedioCalificaciones(encuentro, encuentro.getRobotA());
                 double promedioB = obtenerPromedioCalificaciones(encuentro, encuentro.getRobotB());
                 System.out.println("DEBUG: Promedios calculados -> Robot A: " + promedioA + ", Robot B: " + promedioB);
 
+                // Desempate técnico si los promedios son iguales
                 if (promedioA == promedioB) {
                     promedioB += 0.1;
                     System.out.println("DEBUG: Desempate técnico aplicado. Nuevo promedio B: " + promedioB);
                 }
 
+                // 3. Guardar los promedios en la tabla Encuentro (Requerimiento: subir promedio a tabla encuentro)
                 encuentro.setPuntosRobotA(Math.round(promedioA * 10.0) / 10.0);
                 encuentro.setPuntosRobotB(Math.round(promedioB * 10.0) / 10.0);
             }
 
+            // 4. Determinar y guardar el ganador en la tabla Encuentro
             Robot ganador = encuentro.getPuntosRobotA() > encuentro.getPuntosRobotB() ? encuentro.getRobotA() : encuentro.getRobotB();
             
             // RE-ADJUNTAR: Aseguramos que la entidad ganador esté gestionada por el EntityManager actual
@@ -571,6 +576,7 @@ public class TorneoServiceImpl implements TorneoService {
         calificacion.setPuntaje(puntaje);
         
         calificacionRepository.save(calificacion);
+        System.out.println("DEBUG: Calificación guardada en BD: Juez " + juez.getId() + " -> Robot " + robot.getNombre() + " (" + puntaje + ")");
     }
 
     private double obtenerPromedioCalificaciones(Encuentro encuentro, Robot robot) {
@@ -753,5 +759,62 @@ public class TorneoServiceImpl implements TorneoService {
                 categoriaIds,
                 juezIds
         );
+    }
+
+    @Override
+    @Transactional
+    public void simularTorneoCompleto(Long torneoId) {
+        Torneo torneo = torneoRepository.findById(torneoId)
+                .orElseThrow(() -> new IllegalArgumentException("Torneo no encontrado"));
+
+        List<Encuentro> encuentros = encuentroRepository.findByTorneoId(torneoId);
+        if (encuentros.isEmpty()) {
+            throw new IllegalStateException("No hay encuentros generados. Inserte competidores primero.");
+        }
+
+        // Obtener el primer encuentro (Octavos, partido 1)
+        Encuentro primerEncuentro = encuentros.stream()
+                .min(Comparator.comparing(Encuentro::getId))
+                .orElseThrow();
+
+        // Validación 1: Debe tener ganador
+        if (primerEncuentro.getRobotGanador() == null) {
+            throw new IllegalStateException("El primer encuentro debe ser calificado manualmente antes de iniciar la simulación rápida.");
+        }
+
+        // Validación 2: El primer encuentro debe tener calificaciones de los 3 jueces asignados
+        // Optimizamos usando findByEncuentroAndRobot para no traer toda la tabla
+        List<Calificacion> calificacionesA = calificacionRepository.findByEncuentroAndRobot(primerEncuentro, primerEncuentro.getRobotA());
+        List<Calificacion> calificacionesB = calificacionRepository.findByEncuentroAndRobot(primerEncuentro, primerEncuentro.getRobotB());
+        
+        long juecesDistintos = java.util.stream.Stream.concat(calificacionesA.stream(), calificacionesB.stream())
+                .map(c -> c.getJuez().getId())
+                .distinct()
+                .count();
+
+        if (juecesDistintos < 3) {
+            throw new IllegalStateException("El primer encuentro debe tener calificaciones de al menos 3 jueces distintos.");
+        }
+
+        // Simulación en bucle hasta finalizar
+        boolean torneoFinalizado = false;
+        int safetyCounter = 0;
+        while (!torneoFinalizado && safetyCounter < 20) {
+            List<Encuentro> pendientes = encuentroRepository.findByTorneoId(torneoId).stream()
+                    .filter(e -> e.getRobotGanador() == null)
+                    .collect(Collectors.toList());
+
+            if (pendientes.isEmpty()) {
+                torneoFinalizado = true;
+            } else {
+                pendientes.forEach(e -> simularEncuentro(e.getId()));
+            }
+            
+            // Verificar si el estado cambió a FINALIZADO
+            if (torneoRepository.findById(torneoId).orElseThrow().getEstado() == TorneoEstado.FINALIZADO) {
+                torneoFinalizado = true;
+            }
+            safetyCounter++;
+        }
     }
 }

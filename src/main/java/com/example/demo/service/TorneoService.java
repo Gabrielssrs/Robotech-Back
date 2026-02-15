@@ -27,4 +27,5 @@ public interface TorneoService {
     void verificarEstadoInscripciones();
     ResultadoTorneo getResultadoTorneo(Long torneoId);
     void resetearTorneo(Long torneoId);
+    void simularTorneoCompleto(Long torneoId);
 }
