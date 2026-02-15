@@ -156,7 +156,10 @@ public class TorneoServiceImpl implements TorneoService {
             torneo.setSede(sede);
         }
 
-        if (request.getEstado() != null) torneo.setEstado(request.getEstado());
+        // Permitir cambio de estado manual (ej: Cancelar desde el modal)
+        if (request.getEstado() != null) {
+            torneo.setEstado(request.getEstado());
+        }
 
         if (request.getCategoriaIds() != null) {
             torneo.getCategorias().clear();
