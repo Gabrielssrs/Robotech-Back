@@ -817,8 +817,11 @@ public class TorneoServiceImpl implements TorneoService {
                 .orElseThrow();
 
         // Validación 1: Debe tener ganador
+        // Validación 1: Si no tiene ganador, lo simulamos automáticamente para permitir el flujo rápido
         if (primerEncuentro.getRobotGanador() == null) {
-            throw new IllegalStateException("El primer encuentro debe ser calificado manualmente antes de iniciar la simulación rápida.");
+            simularEncuentro(primerEncuentro.getId());
+            // Recargar el encuentro para tener los datos actualizados (ganador, puntos)
+            primerEncuentro = encuentroRepository.findById(primerEncuentro.getId()).orElseThrow();
         }
 
         // Validación 2: El primer encuentro debe tener calificaciones de los 3 jueces asignados
