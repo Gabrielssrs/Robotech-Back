@@ -23,10 +23,13 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -487,6 +490,9 @@ public class TorneoServiceImpl implements TorneoService {
             encuentro.setPuntosRobotB(promedio);
         }
         encuentroRepository.save(encuentro);
+
+        // Verificar si todos los jueces han calificado para finalizar el encuentro automáticamente
+        verificarYFinalizarEncuentro(encuentro);
     }
 
     @Override
@@ -558,6 +564,39 @@ public class TorneoServiceImpl implements TorneoService {
             e.printStackTrace(); // Imprime el stack trace completo para un diagnóstico profundo
             // Relanzar la excepción para que la transacción haga rollback y el frontend reciba un error 500
             throw new RuntimeException("Fallo en la simulación del encuentro " + encuentroId + ". Causa: " + e.getMessage(), e);
+        }
+    }
+
+    private void verificarYFinalizarEncuentro(Encuentro encuentro) {
+        Set<Juez> jueces = encuentro.getTorneo().getJueces();
+        if (jueces == null || jueces.isEmpty()) return;
+
+        boolean todosHanCalificado = true;
+        for (Juez juez : jueces) {
+            boolean calificadoA = calificacionRepository.findByEncuentroAndRobotAndJuez(encuentro, encuentro.getRobotA(), juez).isPresent();
+            boolean calificadoB = calificacionRepository.findByEncuentroAndRobotAndJuez(encuentro, encuentro.getRobotB(), juez).isPresent();
+            
+            if (!calificadoA || !calificadoB) {
+                todosHanCalificado = false;
+                break;
+            }
+        }
+
+        if (todosHanCalificado && encuentro.getRobotGanador() == null) {
+            Double puntosA = encuentro.getPuntosRobotA() != null ? encuentro.getPuntosRobotA() : 0.0;
+            Double puntosB = encuentro.getPuntosRobotB() != null ? encuentro.getPuntosRobotB() : 0.0;
+            
+            // Desempate técnico si es necesario (igual que en simulación)
+            if (puntosA.equals(puntosB)) {
+                puntosB += 0.1;
+                encuentro.setPuntosRobotB(puntosB);
+            }
+            
+            Robot ganador = puntosA > puntosB ? encuentro.getRobotA() : encuentro.getRobotB();
+            encuentro.setRobotGanador(ganador);
+            encuentroRepository.save(encuentro);
+            
+            checkAndGenerateNextRound(encuentro.getTorneo());
         }
     }
 
@@ -816,5 +855,25 @@ public class TorneoServiceImpl implements TorneoService {
             }
             safetyCounter++;
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getEstadoJueces(Long encuentroId) {
+        Encuentro encuentro = encuentroRepository.findById(encuentroId)
+                .orElseThrow(() -> new IllegalArgumentException("Encuentro no encontrado"));
+        
+        Set<Juez> jueces = encuentro.getTorneo().getJueces();
+        
+        return jueces.stream().map(juez -> {
+            boolean calificadoA = calificacionRepository.findByEncuentroAndRobotAndJuez(encuentro, encuentro.getRobotA(), juez).isPresent();
+            boolean calificadoB = calificacionRepository.findByEncuentroAndRobotAndJuez(encuentro, encuentro.getRobotB(), juez).isPresent();
+            
+            Map<String, Object> estado = new HashMap<>();
+            estado.put("juezId", juez.getId());
+            estado.put("nombre", juez.getNombre());
+            estado.put("listo", calificadoA && calificadoB);
+            return estado;
+        }).collect(Collectors.toList());
     }
 }

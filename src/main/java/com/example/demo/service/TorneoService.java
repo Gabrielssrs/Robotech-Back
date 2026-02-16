@@ -8,6 +8,7 @@ import com.example.demo.dto.EncuentroResponse;
 import com.example.demo.model.Torneo;
 import com.example.demo.model.ResultadoTorneo;
 import java.util.List;
+import java.util.Map;
 
 public interface TorneoService {
     Torneo createTorneo(TorneoRequest request);
@@ -28,4 +29,5 @@ public interface TorneoService {
     ResultadoTorneo getResultadoTorneo(Long torneoId);
     void resetearTorneo(Long torneoId);
     void simularTorneoCompleto(Long torneoId);
+    List<Map<String, Object>> getEstadoJueces(Long encuentroId);
 }

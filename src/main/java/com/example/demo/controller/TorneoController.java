@@ -148,4 +148,10 @@ public class TorneoController {
     public ResponseEntity<ResultadoTorneo> getResultadoTorneo(@PathVariable Long id) {
         return ResponseEntity.ok(torneoService.getResultadoTorneo(id));
     }
+
+    @GetMapping("/encuentros/{id}/estado-jueces")
+    @PreAuthorize("hasAuthority('ROLE_JUEZ') or hasAuthority('ROLE_ADM_SISTEMA')")
+    public ResponseEntity<List<Map<String, Object>>> getEstadoJueces(@PathVariable Long id) {
+        return ResponseEntity.ok(torneoService.getEstadoJueces(id));
+    }
 }
